@@ -12,24 +12,9 @@ import { TouchableOpacity, Text, View } from 'react-native';
 import Home from './src/screens/home';
 
 function App(): React.JSX.Element {
-
   return (
     <Provider store={store}>
       <Home/>
-      {/* <TouchableOpacity style={{
-        position: 'absolute', 
-        bottom: 0, 
-        right: 10,
-        width: 60,
-        height: 60, 
-        borderRadius: 50,
-        borderWidth: 1
-      }}>
-          <Text style={{
-            margin: 'auto',
-            fontSize: 25
-          }}>+</Text>
-      </TouchableOpacity> */}
     </Provider>
   );
 }
