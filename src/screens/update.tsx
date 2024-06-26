@@ -1,9 +1,7 @@
-import React, {useEffect, useState} from "react";
-import { View, Text, TextInput, SafeAreaView, TouchableOpacity,
-    ActivityIndicator, FlatList, Image, useWindowDimensions, 
-    Modal} from "react-native";
+import React, {useState} from "react";
+import { View, Text, TextInput, TouchableOpacity,
+    ActivityIndicator, Alert} from "react-native";
 import http from "../config/http";
-import Icon from "react-native-vector-icons/FontAwesome";
 import { showModal, delContactTemp, getContact } from "../config/redux/apiSlice";
 import { RootState } from "../config/redux/store";
 import { useAppDispatch, useAppSelector } from "../config/redux/hooks";
@@ -28,10 +26,54 @@ const Update = () => {
         }).then((res: any) => {
             setLoadingSubmit(false);
             getListContact();
-            console.log("check res add contact", res);
+            Alert.alert(
+                'Success adding contact',
+                'Successfully adding contact',
+                [
+                    {
+                        text: 'Ok',
+                        onPress: () => console.log('Ok')
+                    }
+                ]
+            )
         }).catch((err) => {
             setLoadingSubmit(false);
-            console.log("check error add contact", err);
+            if(err.response.status === 400 || err.response.status === 500) {
+                Alert.alert(
+                    'Error adding contact',
+                    'There is an error, please contact the administrator',
+                    [
+                        {
+                            text: 'Ok',
+                            onPress: () => console.log('Ok')
+                        }
+                    ]
+                )
+            } else {
+                if(err.response.data === '') {
+                    Alert.alert(
+                        'Error adding contact',
+                        'There is an error, please contact the administrator',
+                        [
+                            {
+                                text: 'Ok',
+                                onPress: () => console.log('Ok')
+                            }
+                        ]
+                    )
+                } else {
+                    Alert.alert(
+                        'Error adding contact',
+                        err.response.data,
+                        [
+                            {
+                                text: 'Ok',
+                                onPress: () => console.log('Ok')
+                            }
+                        ]
+                    )
+                }
+            }
         })
     }
 
@@ -45,9 +87,54 @@ const Update = () => {
         }).then((res: any) => {
             setLoadingSubmit(false);
             getListContact();
+            Alert.alert(
+                'Success update contact',
+                'Successfully updated contact',
+                [
+                    {
+                        text: 'Ok',
+                        onPress: () => console.log('Ok')
+                    }
+                ]
+            )
         }).catch((err) => {
             setLoadingSubmit(false);
-            console.log("check error update contact", err.response);
+            if(err.response.status === 400 || err.response.status === 500) {
+                Alert.alert(
+                    'Error update contact',
+                    'There is an error, please contact the administrator',
+                    [
+                        {
+                            text: 'Ok',
+                            onPress: () => console.log('Ok')
+                        }
+                    ]
+                )
+            } else {
+                if(err.response.data === '') {
+                    Alert.alert(
+                        'Error update contact',
+                        'There is an error, please contact the administrator',
+                        [
+                            {
+                                text: 'Ok',
+                                onPress: () => console.log('Ok')
+                            }
+                        ]
+                    )
+                } else {
+                    Alert.alert(
+                        'Error update contact',
+                        err.response.data,
+                        [
+                            {
+                                text: 'Ok',
+                                onPress: () => console.log('Ok')
+                            }
+                        ]
+                    )
+                }
+            }
         })
     }
 
@@ -55,7 +142,42 @@ const Update = () => {
         http.get('contact').then((res: any) => {
             dispatch(getContact(res.data.data))
         }).catch((err) => {
-            console.log("check error", err);
+            if(err.response.status === 400 || err.response.status === 500) {
+                Alert.alert(
+                    'Error get list contact',
+                    'There is an error, please contact the administrator',
+                    [
+                        {
+                            text: 'Ok',
+                            onPress: () => console.log('Ok')
+                        }
+                    ]
+                )
+            } else {
+                if(err.response.data === '') {
+                    Alert.alert(
+                        'Error get list contact',
+                        'There is an error, please contact the administrator',
+                        [
+                            {
+                                text: 'Ok',
+                                onPress: () => console.log('Ok')
+                            }
+                        ]
+                    )
+                } else {
+                    Alert.alert(
+                        'Error get list contact',
+                        err.response.data,
+                        [
+                            {
+                                text: 'Ok',
+                                onPress: () => console.log('Ok')
+                            }
+                        ]
+                    )
+                }
+            }
         })
     }
 
@@ -69,7 +191,10 @@ const Update = () => {
             }}>
                 <View style={{width: '90%'}}>
                     <Text style={{textAlign: 'center', margin: 10}}>
-                        Tambah Kontak
+                        {
+                            apiState.tempContact?.id === "" ?
+                            "Tambah Kontak" : "Ubah Kontak"
+                        }
                     </Text>    
                 </View>
                 <View style={{width: '10%'}}>

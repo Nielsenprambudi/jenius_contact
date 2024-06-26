@@ -51,6 +51,9 @@ export const apiSlice = createSlice({
                 age: "",
                 photo: ""
             };
+        },
+        searchContact: (state, action: PayloadAction<string>) => {
+            state.contact = state.contact?.filter(cont => cont.firstName.toLowerCase() === action.payload.toLowerCase());
         }        
     }
 });
@@ -60,7 +63,8 @@ export const {
     clearContact, 
     showModal,
     saveContactTemp,
-    delContactTemp
+    delContactTemp,
+    searchContact
 } = apiSlice.actions;
 
 export default apiSlice.reducer;

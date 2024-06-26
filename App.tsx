@@ -8,7 +8,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import store from './src/config/redux/store';
-import { TouchableOpacity, Text, View } from 'react-native';
 import Home from './src/screens/home';
 
 function App(): React.JSX.Element {

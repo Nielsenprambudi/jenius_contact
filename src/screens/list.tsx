@@ -1,8 +1,10 @@
 import React, {useEffect, useState} from "react";
 import { View, Text, TextInput, SafeAreaView, TouchableOpacity,
     ActivityIndicator, FlatList, Image, useWindowDimensions, 
-    Modal} from "react-native";
-import { getContact, objectContact, saveContactTemp, showModal } from "../config/redux/apiSlice";
+    Modal,
+    Alert} from "react-native";
+import { getContact, objectContact, 
+    saveContactTemp, showModal, searchContact } from "../config/redux/apiSlice";
 import { RootState } from "../config/redux/store";
 import { useAppDispatch, useAppSelector } from "../config/redux/hooks";
 import http from "../config/http";
@@ -14,15 +16,14 @@ const List = () => {
     const apiState = useAppSelector((state: RootState) => state.api);
     const dispatch = useAppDispatch();
     const [loading, setLoading] = useState(false);
-    const [data, setData] = useState([]);
-    const [msg, setMsg] = useState('');
+    const [searchText, setSearchText] = useState("");
+    const [refreshState, setRefreshState] = useState(false);
     const {width, height} = useWindowDimensions();
 
     const renderItem = ({item}: {item: objectContact}) => {
         return (
             <View style={{
                 padding: 12,
-                margin: 5,
                 backgroundColor: '#FFFFFF',
                 borderRadius: 10
             }}>
@@ -32,7 +33,7 @@ const List = () => {
                 }}>
                     <View style={{width: "20%"}}>
                         {
-                            item.photo === 'N/A' ?
+                            item.photo === 'N/A' || !item.photo.includes('http') || !item.photo.includes('https') ?
                             <Image
                                 style={{
                                     flex: 1,
@@ -101,10 +102,44 @@ const List = () => {
     const getListContact = () => {
         http.get('contact').then((res: any) => {
             setLoading(false);
-            setData(res.data.data);
             dispatch(getContact(res.data.data))
         }).catch((err) => {
-            console.log("check error", err);
+            if(err.response.status === 400 || err.response.status === 500) {
+                Alert.alert(
+                    'Error get list contact',
+                    'There is an error, please contact the administrator',
+                    [
+                        {
+                            text: 'Ok',
+                            onPress: () => console.log('Ok')
+                        }
+                    ]
+                )
+            } else {
+                if(err.response.data === '') {
+                    Alert.alert(
+                        'Error get list contact',
+                        'There is an error, please contact the administrator',
+                        [
+                            {
+                                text: 'Ok',
+                                onPress: () => console.log('Ok')
+                            }
+                        ]
+                    )
+                } else {
+                    Alert.alert(
+                        'Error get list contact',
+                        err.response.data,
+                        [
+                            {
+                                text: 'Ok',
+                                onPress: () => console.log('Ok')
+                            }
+                        ]
+                    )
+                }
+            }
         })
     }
 
@@ -112,10 +147,77 @@ const List = () => {
         http.delete(`contact/${item.id}`).then((res: any) => {
             setLoading(true);
             getListContact();
+            Alert.alert(
+                'Success deleted contact',
+                'Successfully deleted contact',
+                [
+                    {
+                        text: 'Ok',
+                        onPress: () => console.log('Ok')
+                    }
+                ]
+            )
         }).catch((err) => {
-            console.log("check error", err);
+            if(err.response.status === 400 || err.response.status === 500) {
+                Alert.alert(
+                    'Error Delete Contact',
+                    'There is an error, please contact the administrator',
+                    [
+                        {
+                            text: 'Ok',
+                            onPress: () => console.log('Ok')
+                        }
+                    ]
+                )
+            } else {
+                if(err.response.data === '') {
+                    Alert.alert(
+                        'Error Delete Contact',
+                        'There is an error, please contact the administrator',
+                        [
+                            {
+                                text: 'Ok',
+                                onPress: () => console.log('Ok')
+                            }
+                        ]
+                    )
+                } else {
+                    Alert.alert(
+                        'Error Delete Contact',
+                        err.response.data,
+                        [
+                            {
+                                text: 'Ok',
+                                onPress: () => console.log('Ok')
+                            }
+                        ]
+                    )
+                }
+            }
         })
     }
+
+    const getSearchResult = (value: string) => {
+        setSearchText(value);
+        if(value === "") {
+            setLoading(true);
+            getListContact();
+        } 
+    }
+
+    const searchStarting = () => {
+        dispatch(searchContact(searchText))
+    }
+
+    const onRefreshList = React.useCallback(() => {
+        setRefreshState(true);
+        setSearchText('');
+        setLoading(true);
+        getListContact();
+        setTimeout(() => {
+            setRefreshState(false);
+        }, 100)
+    }, []);
 
     
 
@@ -126,39 +228,61 @@ const List = () => {
     }, [])
     return (
         <SafeAreaView>
-                <Modal
-                    animationType="slide"
-                    visible={apiState.showModal}
-                >
-                    <Update/>
-                </Modal>
-                <TextInput
-                    placeholder="Cari Kontak"
-                    style={{
-                        padding: 12,
-                        margin: 10,
-                        borderRadius: 10,
-                        borderWidth: 1,
-                    }}
-                />
-                <View
-                    style={{
-                        backgroundColor: '#d7dbe6',
-                        height: '100%',
-                        padding: 10,
-                        borderRadius: 20
-                    }}
-                >
-                    {
-                        loading ?
-                        <ActivityIndicator/> :
-                        <FlatList
-                            data={apiState.contact}
-                            renderItem={renderItem}
-                            keyExtractor={(item: any) => item.id}
-                        />
-                    }
-                </View>
+            <Modal
+                animationType="slide"
+                visible={apiState.showModal}
+            >
+                <Update/>
+            </Modal>
+            <TextInput
+                placeholder="Cari Kontak"
+                enterKeyHint="search"
+                onChangeText={(val) => getSearchResult(val)}
+                onSubmitEditing={() => searchStarting()}
+                style={{
+                    padding: 12,
+                    margin: 10,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                }}
+            />
+            <View
+                style={{
+                    backgroundColor: '#d7dbe6',
+                    height: '100%',
+                    padding: 10,
+                    borderRadius: 20
+                }}
+            >
+                {
+                    loading ?
+                    <ActivityIndicator/> :
+                    <FlatList
+                        data={apiState.contact}
+                        renderItem={renderItem}
+                        keyExtractor={(item: any) => item.id}
+                        refreshing={refreshState}
+                        onRefresh={() => {
+                            onRefreshList()
+                        }}
+                        ListEmptyComponent={() => 
+                            <View style={{margin: 0}}>
+                                <Icon
+                                    name="file-o"
+                                    size={20}
+                                    style={{textAlign: 'center'}}
+                                />
+                                <Text style={{textAlign: 'center'}}>
+                                    Please add more contact
+                                </Text>
+                            </View>
+                        }
+                        ItemSeparatorComponent={() => 
+                            <View style={{marginVertical: 5}}></View>
+                        }
+                    />
+                }
+            </View>
                 
         </SafeAreaView>
     )
